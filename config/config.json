@@ -1,0 +1,24 @@
+{
+  "development": {
+    "username": "test",
+    "password": "test@123",
+    "database": "zplatform",
+    "host": "127.0.0.1",
+    "dialect": "postgresql",
+    "logging": false
+  },
+  "test": {
+    "username": "test",
+    "password": "test@123",
+    "database": "zplatform",
+    "host": "127.0.0.1",
+    "dialect": "postgresql"
+  },
+  "production": {
+    "username": "test",
+    "password": "test@123",
+    "database": "zplatform",
+    "host": "127.0.0.1",
+    "dialect": "postgresql"
+  }
+}
