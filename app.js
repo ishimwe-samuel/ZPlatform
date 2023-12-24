@@ -11,7 +11,8 @@ const routes = require("./routes");
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
-app.get("/", (req, res) => {
+app.use("/uploads", express.static("uploads"));
+app.get("/api", (req, res) => {
   res.json("Welcome to ZPlatform!").status(200);
 });
 app.use("/api/", routes);

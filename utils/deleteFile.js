@@ -3,7 +3,7 @@ const path = require("path");
 const deleteFile = (fileName) => {
   // Get the root directory
   const rootDirectory = path.join(__dirname, "..");
-  const filePath = path.join(rootDirectory, "uploads", fileName); // A
+  const filePath = path.join(rootDirectory, fileName); // A
   fs.access(filePath, fs.constants.F_OK, (err) => {
     if (err) {
       // Handle the error (file doesn't exist)

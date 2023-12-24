@@ -1,16 +1,37 @@
 const Sentry = require("@sentry/node");
+const { Sequelize } = require("sequelize");
 const { User, UserProfile } = require("../models");
 const deleteFile = require("../utils/deleteFile");
 const validateUserProfile = require("../validators/validateUserProfile");
 
 const allUsers = async (req, res) => {
   try {
+    const { status, query } = req.query;
+    let whereClause = {};
+
+    // Check if the 'name' parameter is present in the query
+    if (query) {
+      whereClause = {
+        [Sequelize.Op.or]: [
+          { email: { [Sequelize.Op.like]: `%${query}%` } },
+          { "$profile.firstName$": { [Sequelize.Op.like]: `%${query}%` } },
+          { "$profile.lastName$": { [Sequelize.Op.like]: `%${query}%` } },
+        ],
+      };
+    }
+
+    if (status) {
+      whereClause.status = { [Sequelize.Op.eq]: status };
+    }
+    console.log(whereClause);
     const users = await User.findAll({
-      attributes: { exclude: ["password"] },
-      where: { admin: false },
+      attributes: { exclude: ["password", "userId"] },
+      where: { admin: false, ...whereClause },
+      include: "profile",
     });
     res.status(200).json(users);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Something went wrong" });
     Sentry.captureException(error);
   }
@@ -25,6 +46,7 @@ const userDetail = async (req, res) => {
           as: "profile",
         },
       ],
+      attributes: { exclude: ["password"] },
     });
     if (user) {
       return res.status(200).json(user);
@@ -63,8 +85,8 @@ const updateProfile = async (req, res) => {
       nationalId,
     } = req.body;
     try {
-      const profilePicture = req.files["profilePicture"][0].filename;
-      const nationalIdDocument = req.files["nationalIdDocument"][0].filename;
+      const profilePicture = req.files["profilePicture"][0].path;
+      const nationalIdDocument = req.files["nationalIdDocument"][0].path;
       let userProfile = await UserProfile.findOne({
         where: { userId: user.id },
       });
