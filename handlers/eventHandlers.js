@@ -14,7 +14,6 @@ userEmitter.on("user-created", async ({ user }) => {
   sendMail(user.email, "Welcome to zPlatform", message);
   setTimeout(function () {
     userOtp.update({ active: false });
-    console.log("Just set inactive otp");
   }, 300000);
 });
 userEmitter.on("resend-otp", async ({ user }) => {
@@ -30,7 +29,6 @@ userEmitter.on("resend-otp", async ({ user }) => {
   sendMail(user.email, "Welcome to zPlatform", message);
   setTimeout(function () {
     userOtp.update({ active: false });
-    console.log("Just set inactive otp");
   }, 300000);
 });
 userEmitter.on("user-activated", ({ user }) => {

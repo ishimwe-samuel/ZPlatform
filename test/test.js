@@ -9,13 +9,13 @@ const expect = chai.expect;
 chai.use(chaiHttp);
 
 describe('API Tests', () => {
-  it('should return "Hello, World!" from GET /api', (done) => {
+  it('should return "Welcome to ZPlatform!" from GET /api', (done) => {
     chai
       .request(app)
       .get('/api')
       .end((err, res) => {
         expect(res).to.have.status(200);
-        expect(res.body.message).to.equal('Hello, World!');
+        expect(res.body.message).to.equal('Welcome to ZPlatform!');
         done();
       });
   });

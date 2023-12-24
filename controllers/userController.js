@@ -23,7 +23,6 @@ const allUsers = async (req, res) => {
     if (status) {
       whereClause.status = { [Sequelize.Op.eq]: status };
     }
-    console.log(whereClause);
     const users = await User.findAll({
       attributes: { exclude: ["password", "userId"] },
       where: { admin: false, ...whereClause },
@@ -31,7 +30,6 @@ const allUsers = async (req, res) => {
     });
     res.status(200).json(users);
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Something went wrong" });
     Sentry.captureException(error);
   }

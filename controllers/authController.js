@@ -85,7 +85,8 @@ const otpVerification = async (req, res) => {
       }
     }
   } catch (error) {
-    return res.status(500).json({ error: "Something went wrong!" });
+    res.status(500).json({ error: "Something went wrong!" });
+    Sentry.captureException(error);
   }
 };
 const resendOTP = async (req, res) => {
@@ -99,7 +100,8 @@ const resendOTP = async (req, res) => {
       return res.status(404).json({ error: "User with such id not found" });
     }
   } catch (error) {
-    return res.status(500).json({ error: "Something went wrong!" });
+    res.status(500).json({ error: "Something went wrong!" });
+    Sentry.captureException(error);
   }
 };
 const resetPassword = async (req, res) => {
@@ -129,7 +131,8 @@ const resetPassword = async (req, res) => {
         .json({ error: "User with this email was not found" });
     }
   } catch (error) {
-    return res.status(500).json({ error: "Something went wrong!" });
+    res.status(500).json({ error: "Something went wrong!" });
+    Sentry.captureException(error);
   }
 };
 const setPassword = async (req, res) => {
@@ -182,7 +185,8 @@ const setPassword = async (req, res) => {
       return res.status(400).json({ password: error.message });
     }
   } catch (error) {
-    return res.status(500).json({ error: "Something went wrong!" });
+    res.status(500).json({ error: "Something went wrong!" });
+    Sentry.captureException(error);
   }
 };
 const login = async (req, res) => {
@@ -207,7 +211,8 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Wrong email or password" });
     }
   } catch (error) {
-    return res.status(500).json({ message: "Something went wrong" });
+    res.status(500).json({ message: "Something went wrong" });
+    Sentry.captureException(error);
   }
 };
 module.exports = {
