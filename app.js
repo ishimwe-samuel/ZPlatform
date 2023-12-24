@@ -1,7 +1,12 @@
 const cors = require("cors");
 const express = require("express");
+// user events
 require("./events/eventEmitters.js");
 require("./handlers/eventHandlers.js");
+// auth events
+require("./events/authEventEmitters.js");
+require("./handlers/authEventHandler.js");
+
 require("dotenv").config({ path: ".env" });
 
 const app = express();

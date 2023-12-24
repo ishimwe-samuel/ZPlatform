@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
       },
       userId: { type: DataTypes.UUID },
-      auth_type: {
+      authType: {
         type: DataTypes.ENUM(["LINK", "OTP", "PASSWORD"]),
         defaultValue: "PASSWORD",
       },

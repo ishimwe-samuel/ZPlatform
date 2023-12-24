@@ -53,6 +53,10 @@ db.UserProfile.belongsTo(db.User, { foreignKey: "userId" });
 db.User.hasOne(db.MultiFactorAuth, { as: "mfa", foreignKey: "userId" });
 db.MultiFactorAuth.belongsTo(db.User, { as: "user", foreignKey: "mfaId" });
 
-db.OTP.hasMany(db.User, { as: "user_otps", foreignKey: "userId" });
-db.Token.belongsTo(db.User, { as: "user_token", foreignKey: "userId" });
+db.User.hasMany(db.OTP, { as: "userOTP", foreignKey: "userId" });
+db.OTP.belongsTo(db.User);
+
+db.User.hasMany(db.Token, { as: "userToken", foreignKey: "userId" });
+db.Token.belongsTo(db.User);
+
 module.exports = db;

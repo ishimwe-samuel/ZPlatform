@@ -3,8 +3,9 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const userEmitter = require("../events/eventEmitters");
+const authEmitter = require("../events/authEventEmitters");
 const validatePassword = require("../validators/password_validator");
-const { User, OTP, Token, MultiFactorAuth } = require("../models");
+const { User, OTP, Token } = require("../models");
 
 const userRegistration = async (req, res) => {
   try {
@@ -27,7 +28,6 @@ const userRegistration = async (req, res) => {
         password,
         Number(process.env.BCRYPT_SALT)
       );
-      console.log(User.prototype);
       const userCreated = await User.create({
         password: encryptedPassword,
         email: email,
@@ -40,7 +40,7 @@ const userRegistration = async (req, res) => {
       } else {
         return res
           .status(400)
-          .json({ message: "Something went wrong please try again" });
+          .json({ error: "Something went wrong please try again" });
       }
     } catch (error) {
       return res.status(400).json({ password: error.message });
@@ -50,11 +50,11 @@ const userRegistration = async (req, res) => {
       if (error.errors[0].validatorKey === "not_unique") {
         return res
           .status(400)
-          .json({ message: "User with this email exist or phone number" });
+          .json({ error: "User with this email exist or phone number" });
       }
-      return res.status(400).json({ message: error.errors[0].message });
+      return res.status(400).json({ error: error.errors[0].message });
     }
-    return res.status(400).json({ message: "Something went wrong" });
+    return res.status(400).json({ error: "Something went wrong" });
   }
 };
 const otpVerification = async (req, res) => {
@@ -87,7 +87,6 @@ const otpVerification = async (req, res) => {
       }
     }
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: "Something went wrong!" });
     Sentry.captureException(error);
   }
@@ -111,7 +110,9 @@ const resetPassword = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ where: { email } });
-    let userToken = await Token.findOne({ where: { userId: user.id } });
+    let userToken = await Token.findOne({
+      where: { userId: user.id, tokenType: "RESET_PASSWORD" },
+    });
     if (userToken) {
       await userToken.destroy();
     }
@@ -196,49 +197,126 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ error: "All fields are required" });
     } else {
-      let myUser = await User.findOne({ where: { email } });
-      if (myUser && (await bcrypt.compare(password, myUser.password))) {
+      let user = await User.findOne({
+        where: { email },
+        include: "mfa",
+      });
+      if (user && !user.active) {
+        return res.status(400).json({
+          error:
+            "Your account is inactive, please activate your account before login",
+        });
+      }
+      if (user && (await bcrypt.compare(password, user.password))) {
+        if (user.mfa.authType === "PASSWROD") {
+          const token = jwt.sign(
+            {
+              userId: user.id,
+            },
+            process.env.ACCESS_TOKEN_KEY,
+            { expiresIn: "1h" }
+          );
+
+          return res.status(200).json({ token: token });
+        } else if (user.mfa.authType === "OTP") {
+          res.status(200).json({
+            "2fa": "OTP",
+          });
+          authEmitter.emit("mfa-otp", { user });
+        }
+      }
+      return res.status(400).json({ error: "Wrong email or password" });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Something went wrong" });
+    Sentry.captureException(error);
+  }
+};
+const userPreAuth = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ email: "Email is required" });
+    }
+    let user = await User.findOne({ where: { email }, include: "mfa" });
+    if (user) {
+      if (!user.active) {
+        return res.status(400).json({
+          error:
+            "Your account is inactive, please activate your account before login",
+        });
+      }
+      // if login type is not password then send mail
+
+      if (user.mfa.authType === "LINK") {
+        authEmitter.emit("mfa-link", { user });
+      }
+      if (user.mfa.authType === "OTP") {
+        authEmitter.emit("mfa-otp", { user });
+      }
+
+      return res.status(200).json({ mfa: user.mfa, userId: user.id });
+    } else {
+      return res
+        .status(404)
+        .json({ email: "User with this email does not exists" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Something went wrong" });
+    Sentry.captureException(error);
+  }
+};
+const OTPLogin = async (req, res) => {
+  try {
+    const { otp, email } = req.body;
+    if (!otp) {
+      return res.status(400).json({ error: "OTP code is required" });
+    }
+    if (!email) {
+      return res.status(400).json({ error: "OTP code is required" });
+    }
+    let user = await User.findOne({
+      where: { email },
+      include: "profile",
+      attributes: { exclude: ["password"] },
+    });
+    if (user) {
+      let userOTP = await OTP.findOne({ where: { userId: user.id } });
+      if (userOTP && userOTP.isValid()) {
         const token = jwt.sign(
           {
-            userId: myUser.id,
-            username: myUser.firstName,
-            userType: myUser.userType,
+            userId: user.id,
           },
           process.env.ACCESS_TOKEN_KEY,
           { expiresIn: "1h" }
         );
-        return res.status(200).json({ token: token });
+        await userOTP.destroy();
+        return res.status(200).json({ token, user: user });
+      } else {
+        return res.status(403).json({ error: "The OTP provided has expired" });
       }
-      return res.status(400).json({ message: "Wrong email or password" });
+    } else {
+      return res
+        .status(400)
+        .json({ error: "User with this email was not found" });
     }
   } catch (error) {
-    res.status(500).json({ message: "Something went wrong" });
+    console.log(error);
+    res.status(500).json({ error: "Something went wrong" });
     Sentry.captureException(error);
   }
-  const userPreAuth = (async = (req, res) => {
-    try {
-      const { email } = req.body;
-      let user = User.findOne({ where: { email }, include: "mfa" });
-      if (user) {
-        let user2fa = MultiFactorAuth.findOne;
-      } else {
-        return res
-          .status(404)
-          .json({ email: "User with this email does not exists" });
-      }
-    } catch (error) {
-      res.status(500).json({ message: "Something went wrong" });
-      Sentry.captureException(error);
-    }
-  });
 };
+
 module.exports = {
-  userRegistration: userRegistration,
-  login: login,
-  resendOTP: resendOTP,
-  otpVerification: otpVerification,
-  resetPassword: resetPassword,
-  setPassword: setPassword,
+  userRegistration,
+  login,
+  OTPLogin,
+  resendOTP,
+  otpVerification,
+  resetPassword,
+  setPassword,
+  userPreAuth,
 };

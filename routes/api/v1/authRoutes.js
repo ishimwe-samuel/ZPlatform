@@ -3,17 +3,18 @@ const upload = require("../../../controllers/uploadController");
 
 const {
   userRegistration,
-  forgotPassword,
   login,
-  updateUserStatus,
   resendOTP,
   otpVerification,
   resetPassword,
   setPassword,
-  updateProfile,
+  userPreAuth,
+  OTPLogin,
 } = require("../../../controllers/authController");
 const router = express.Router();
 router.post("/sign-in/", login);
+router.post("/sign-in/otp/", OTPLogin);
+router.post("/pre-auth/", userPreAuth);
 router.post("/sign-up/", userRegistration);
 router.post("/resend-otp/:id/", resendOTP);
 router.post("/verify-otp/", otpVerification);

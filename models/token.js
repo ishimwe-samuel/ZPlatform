@@ -7,7 +7,11 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      userId: { type: DataTypes.UUID, allowNull: true },
+      userId: { type: DataTypes.UUID },
+      tokenType: {
+        type: DataTypes.ENUM(["RESET_PASSWORD", "LOGIN_LINK"]),
+        defaultValue: "RESET_PASSWORD",
+      },
       token: DataTypes.STRING,
     },
     {
