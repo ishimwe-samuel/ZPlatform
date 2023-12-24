@@ -76,6 +76,7 @@ const otpVerification = async (req, res) => {
         if (otp && otp.active == true && otp.isValid() == true) {
           user.update({ active: true });
           userEmitter.emit("user-activated", { user: user });
+          await otp.destroy();
           return res.status(204).send();
         } else {
           return res
@@ -221,13 +222,14 @@ const login = async (req, res) => {
 
           return res.status(200).json({ token: token });
         } else if (user.mfa.authType === "OTP") {
+          authEmitter.emit("mfa-otp", { user });
           res.status(200).json({
             "2fa": "OTP",
           });
-          authEmitter.emit("mfa-otp", { user });
         }
+      } else {
+        return res.status(400).json({ error: "Wrong email or password" });
       }
-      return res.status(400).json({ error: "Wrong email or password" });
     }
   } catch (error) {
     console.log(error);
@@ -254,10 +256,6 @@ const userPreAuth = async (req, res) => {
       if (user.mfa.authType === "LINK") {
         authEmitter.emit("mfa-link", { user });
       }
-      if (user.mfa.authType === "OTP") {
-        authEmitter.emit("mfa-otp", { user });
-      }
-
       return res.status(200).json({ mfa: user.mfa, userId: user.id });
     } else {
       return res
@@ -284,7 +282,10 @@ const OTPLogin = async (req, res) => {
       attributes: { exclude: ["password"] },
     });
     if (user) {
-      let userOTP = await OTP.findOne({ where: { userId: user.id } });
+      let userOTP = await OTP.findOne({
+        where: { userId: user.id, otp: String(otp) },
+      });
+
       if (userOTP && userOTP.isValid()) {
         const token = jwt.sign(
           {
