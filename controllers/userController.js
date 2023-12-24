@@ -1,4 +1,6 @@
 const { User, UserProfile } = require("../models");
+const deleteFile = require("../utils/deleteFile");
+const validateUserProfile = require("../validators/validateUserProfile");
 
 const allUsers = async (req, res) => {
   try {
@@ -65,13 +67,16 @@ const updateProfile = async (req, res) => {
           userProfile.nationalId = nationalId;
         }
         if (profilePicture) {
+          // remove user associated file and replace with new one
+          deleteFile(userProfile.profilePicture);
           userProfile.profilePicture = profilePicture;
         }
         if (nationalIdDocument) {
+          // remove user associated file and replace with new one
+          deleteFile(userProfile.nationalIdDocument);
           userProfile.nationalIdDocument = nationalIdDocument;
         }
         userProfile.save();
-        // .save()
       } else {
         validateUserProfile(req.body);
         await UserProfile.create({
