@@ -19,8 +19,7 @@ userEmitter.on("user-created", async ({ user }) => {
 userEmitter.on("resend-otp", async ({ user }) => {
   let otp = generateOTP();
   await OTP.destroy({ where: { userId: user.id } });
-  let userOtp = await OTP.create({ userId: user.id, otp: otp });
-
+  let userOTP = await user.createUserOTP({ otp: otp });
   let message = `
   <h3>Welcome to the <b>zPlatform!</b></h3>
   <p>Please use this code to verify your account</p>
@@ -28,7 +27,7 @@ userEmitter.on("resend-otp", async ({ user }) => {
 `;
   sendMail(user.email, "Welcome to zPlatform", message);
   setTimeout(function () {
-    userOtp.update({ active: false });
+    userOTP.update({ active: false });
   }, 300000);
 });
 userEmitter.on("user-activated", async ({ user }) => {

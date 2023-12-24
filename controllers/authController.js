@@ -232,7 +232,6 @@ const login = async (req, res) => {
       }
     }
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: "Something went wrong" });
     Sentry.captureException(error);
   }
@@ -305,7 +304,6 @@ const OTPLogin = async (req, res) => {
         .json({ error: "User with this email was not found" });
     }
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: "Something went wrong" });
     Sentry.captureException(error);
   }

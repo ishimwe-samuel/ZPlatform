@@ -1,3 +1,4 @@
+const Sentry = require("@sentry/node");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 const sendMail = async (recipient, subject, message) => {
@@ -24,7 +25,7 @@ EMAIL_HOST_PASSWORD=dxmjoqfoeewnfigh
   };
   transporter.sendMail(mailOptions, function (error, info) {
     if (error) {
-      console.log(error);
+      Sentry.captureException(error);
     } else {
       console.log(`Email send: ${info.response}`);
     }
