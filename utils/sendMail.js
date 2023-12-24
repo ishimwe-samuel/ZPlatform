@@ -2,10 +2,6 @@ const Sentry = require("@sentry/node");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 const sendMail = async (recipient, subject, message) => {
-  /**
-     * EMAIL_HOST_USER=solvitcadet@gmail.com
-EMAIL_HOST_PASSWORD=dxmjoqfoeewnfigh
-     */
   let transporter = nodemailer.createTransport({
     service: "gmail",
     host: "smtp.gmail.com",

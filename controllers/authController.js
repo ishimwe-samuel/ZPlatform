@@ -308,7 +308,47 @@ const OTPLogin = async (req, res) => {
     Sentry.captureException(error);
   }
 };
+const verifyLoginLink = async (req, res) => {
+  try {
+    const { token, userId } = req.body;
 
+    let user = await User.findByPk(userId, {
+      attributes: { exclude: ["password"] },
+    });
+
+    if (user) {
+      let userToken = await Token.findOne({
+        where: { userId: user.id, tokenType: "LOGIN_LINK" },
+      });
+      if (userToken) {
+        const isValid = await bcrypt.compare(token, userToken.token);
+        if (!isValid) {
+          return res
+            .status(404)
+            .json({ error: "Invalid or expired password reset token" });
+        } else {
+          // TOken is valid
+          const token = jwt.sign(
+            {
+              userId: user.id,
+            },
+            process.env.ACCESS_TOKEN_KEY,
+            { expiresIn: "1h" }
+          );
+          return res.status(200).json({ token: token, user: user });
+        }
+      } else {
+        return res
+          .status(403)
+          .json({ error: "Invalid or expired login token" });
+      }
+    } else {
+      return res
+        .status(404)
+        .json({ error: "User with this id does not exists" });
+    }
+  } catch (error) {}
+};
 module.exports = {
   userRegistration,
   login,
@@ -318,4 +358,5 @@ module.exports = {
   resetPassword,
   setPassword,
   userPreAuth,
+  verifyLoginLink,
 };

@@ -19,8 +19,16 @@ authEventEmitter.on("mfa-link", async ({ user }) => {
   }
   user.createUserToken({
     token: loginTokenHash,
+    tokenType: "LOGIN_LINK",
   });
+
   const link = `http://localhost:4000/login/mfa?token=${loginToken}&id=${user.id}`;
+  let message = `
+  <p>Hi</p>
+  <p>Please use this link to login in int the zPLatform!</p>  
+  <a href='${link}'>Login</a>
+  `;
+  sendMail(user.email, "zPlatform! Login Link", message);
 });
 
 authEventEmitter.on("mfa-otp", async ({ user }) => {

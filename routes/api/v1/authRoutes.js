@@ -10,10 +10,12 @@ const {
   setPassword,
   userPreAuth,
   OTPLogin,
+  verifyLoginLink
 } = require("../../../controllers/authController");
 const router = express.Router();
 router.post("/sign-in/", login);
 router.post("/sign-in/otp/", OTPLogin);
+router.post("/sign-in/link/", verifyLoginLink);
 router.post("/pre-auth/", userPreAuth);
 router.post("/sign-up/", userRegistration);
 router.post("/resend-otp/:id/", resendOTP);
