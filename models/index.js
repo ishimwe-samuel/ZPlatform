@@ -49,9 +49,10 @@ db.Sequelize = Sequelize;
 
 db.User.hasOne(db.UserProfile, { as: "profile", foreignKey: "userId" });
 db.UserProfile.belongsTo(db.User, { foreignKey: "userId" });
-// db.User.hasOne(db.UserProfile, { as: "profile" });
-// db.UserProfile.belongsTo(db.User, { as: "user" });
-db.twoFactorAuth.hasMany(db.User, { as: "users", foreignKey: "userId" });
+
+db.User.hasOne(db.MultiFactorAuth, { as: "mfa", foreignKey: "userId" });
+db.MultiFactorAuth.belongsTo(db.User, { as: "user", foreignKey: "mfaId" });
+
 db.OTP.hasMany(db.User, { as: "user_otps", foreignKey: "userId" });
 db.Token.belongsTo(db.User, { as: "user_token", foreignKey: "userId" });
 module.exports = db;

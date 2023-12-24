@@ -1,5 +1,5 @@
 const userEmitter = require("../events/eventEmitters");
-const { OTP } = require("../models");
+const { User, OTP, MultiFactorAuth } = require("../models");
 const generateOTP = require("../utils/generate_otp");
 const sendMail = require("../utils/sendMail");
 userEmitter.on("user-created", async ({ user }) => {
@@ -31,12 +31,16 @@ userEmitter.on("resend-otp", async ({ user }) => {
     userOtp.update({ active: false });
   }, 300000);
 });
-userEmitter.on("user-activated", ({ user }) => {
+userEmitter.on("user-activated", async ({ user }) => {
   let message = `
   <h3>Welcome to the <b>zPlatform!</b></h3>
   <h1>Your account has be activated enjoy the zPlatform</h1>
 `;
   sendMail(user.email, "Welcome to zPlatform", message);
+  // create a mfa instance with password as default
+  let userInstance = await User.findByPk(user.id);
+  let mfa = await MultiFactorAuth.create();
+  await userInstance.setMfa(mfa);
 });
 userEmitter.on("reset-password", ({ user, link }) => {
   let message = `

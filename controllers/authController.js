@@ -1,9 +1,10 @@
-const { User, OTP, Token } = require("../models");
+const Sentry = require("@sentry/node");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const userEmitter = require("../events/eventEmitters");
 const validatePassword = require("../validators/password_validator");
+const { User, OTP, Token, MultiFactorAuth } = require("../models");
 
 const userRegistration = async (req, res) => {
   try {
@@ -26,6 +27,7 @@ const userRegistration = async (req, res) => {
         password,
         Number(process.env.BCRYPT_SALT)
       );
+      console.log(User.prototype);
       const userCreated = await User.create({
         password: encryptedPassword,
         email: email,
@@ -85,6 +87,7 @@ const otpVerification = async (req, res) => {
       }
     }
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: "Something went wrong!" });
     Sentry.captureException(error);
   }
@@ -214,6 +217,22 @@ const login = async (req, res) => {
     res.status(500).json({ message: "Something went wrong" });
     Sentry.captureException(error);
   }
+  const userPreAuth = (async = (req, res) => {
+    try {
+      const { email } = req.body;
+      let user = User.findOne({ where: { email }, include: "mfa" });
+      if (user) {
+        let user2fa = MultiFactorAuth.findOne;
+      } else {
+        return res
+          .status(404)
+          .json({ email: "User with this email does not exists" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Something went wrong" });
+      Sentry.captureException(error);
+    }
+  });
 };
 module.exports = {
   userRegistration: userRegistration,

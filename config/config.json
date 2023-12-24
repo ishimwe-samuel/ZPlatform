@@ -10,7 +10,7 @@
   "test": {
     "username": "test",
     "password": "test@123",
-    "database": "zplatform",
+    "database": "zplatformtest",
     "host": "127.0.0.1",
     "dialect": "postgresql"
   },

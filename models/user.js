@@ -18,6 +18,13 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       tableName: "user",
+      hooks: {
+        // This hook is executed after a new record is created
+        afterCreate: async (userInstance, options) => {
+          // create a default Multi factor auth
+          await userInstance.createMfa();
+        },
+      },
     }
   );
   return User;
