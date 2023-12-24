@@ -17,8 +17,8 @@ const allUsers = async (req, res) => {
 };
 const userDetail = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const user = await User.findByPk(userId, {
+    const { id } = req.params;
+    const user = await User.findByPk(id, {
       include: [
         {
           model: UserProfile,
@@ -47,6 +47,7 @@ const updateUserStatus = async (req, res) => {
     res.status(200).send();
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
+    Sentry.captureException(error);
   }
 };
 const updateProfile = async (req, res) => {
@@ -65,7 +66,7 @@ const updateProfile = async (req, res) => {
       const profilePicture = req.files["profilePicture"][0].filename;
       const nationalIdDocument = req.files["nationalIdDocument"][0].filename;
       let userProfile = await UserProfile.findOne({
-        where: { userId: user.userId },
+        where: { userId: user.id },
       });
       if (userProfile) {
         if (firstName) {
@@ -102,8 +103,7 @@ const updateProfile = async (req, res) => {
         userProfile.save();
       } else {
         validateUserProfile(req.body);
-        await UserProfile.create({
-          userId: user.userId,
+        let userProfileInstance = await UserProfile.create({
           firstName,
           lastName,
           gender,
@@ -114,13 +114,15 @@ const updateProfile = async (req, res) => {
           nationalId,
           nationalIdDocument,
         });
+        user.setProfile(userProfileInstance);
       }
       res.status(204).send();
     } catch (error) {
       return res.status(400).json({ error: error.message });
     }
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
+    Sentry.captureException(error);
   }
 };
 

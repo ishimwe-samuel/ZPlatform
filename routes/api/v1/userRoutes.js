@@ -10,8 +10,8 @@ const {
 const handleMulterException = require("../../../controllers/multerErrorHandlerController");
 const router = express.Router();
 router.get("/", allUsers);
-router.get("/:userId", userDetail);
-router.patch("/user-status/:id/", updateUserStatus);
+router.get("/:id", userDetail);
+router.patch("/:id/", updateUserStatus);
 router.post(
   "/update-profile/",
 

@@ -4,7 +4,10 @@ const TokenParser = require("../utils/tokenParser");
 
 const auth = async (req, res, next) => {
   try {
-    if (req.originalUrl.startsWith("/api/v1/auth/")&&req.originalUrl!=="/api/v1/auth/update-profile/") {
+    if (
+      req.originalUrl.startsWith("/api/v1/auth/") &&
+      req.originalUrl !== "/api/v1/auth/update-profile/"
+    ) {
       return next();
     } else {
       if (
@@ -17,7 +20,9 @@ const auth = async (req, res, next) => {
         const authHeader = req.headers["authorization"];
         let token = authHeader && authHeader.split(" ")[1];
         const parsedToken = TokenParser(token);
-        const getUserByToken = await User.findByPk(parsedToken.userId);
+        const getUserByToken = await User.findByPk(parsedToken.userId, {
+          attributes: { exclude: ["password"] },
+        });
         if (!getUserByToken) {
           return res.status(401).json({ message: "Unauthorized" });
         } else {
@@ -25,7 +30,7 @@ const auth = async (req, res, next) => {
             if (err) {
               return res.status(401).json({ message: "Token has expired" });
             } else {
-              req.user = user;
+              req.user = getUserByToken;
               return next();
             }
           });
