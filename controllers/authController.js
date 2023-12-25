@@ -335,7 +335,8 @@ const verifyLoginLink = async (req, res) => {
             process.env.ACCESS_TOKEN_KEY,
             { expiresIn: "1h" }
           );
-          return res.status(200).json({ token: token, user: user });
+          res.status(200).json({ token: token, user: user });
+          userToken.destroy();
         }
       } else {
         return res
