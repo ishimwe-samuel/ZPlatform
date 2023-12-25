@@ -204,14 +204,20 @@ const login = async (req, res) => {
         where: { email },
         include: "mfa",
       });
+      let userWithoutPassword = await User.findOne({
+        where: { email },
+        include: "profile",
+        attributes: { exclude: ["password"] },
+      });
       if (user && !user.active) {
         return res.status(400).json({
           error:
             "Your account is inactive, please activate your account before login",
         });
       }
+
       if (user && (await bcrypt.compare(password, user.password))) {
-        if (user.mfa.authType === "PASSWROD") {
+        if (user.mfa.authType === "PASSWORD") {
           const token = jwt.sign(
             {
               userId: user.id,
@@ -220,12 +226,18 @@ const login = async (req, res) => {
             { expiresIn: "1h" }
           );
 
-          return res.status(200).json({ token: token });
+          return res
+            .status(200)
+            .json({ token: token, user: userWithoutPassword });
         } else if (user.mfa.authType === "OTP") {
           authEmitter.emit("mfa-otp", { user });
-          res.status(200).json({
+          return res.status(200).json({
             "2fa": "OTP",
           });
+        } else {
+          return res
+            .status(400)
+            .json({ error: "You have a different login type" });
         }
       } else {
         return res.status(400).json({ error: "Wrong email or password" });

@@ -1,3 +1,5 @@
+const moment = require("moment");
+
 module.exports = (sequelize, DataTypes) => {
   const userProfile = sequelize.define(
     "UserProfile",
@@ -15,6 +17,15 @@ module.exports = (sequelize, DataTypes) => {
       },
       profilePicture: DataTypes.STRING,
       dob: DataTypes.DATEONLY,
+      age: {
+        type: DataTypes.VIRTUAL,
+        get() {
+          return moment().year()-moment(this.dob).year();
+        },
+        set(value) {
+          throw new Error("Do not try to set the `fullName` value!");
+        },
+      },
       maritalStatus: {
         type: DataTypes.ENUM(["SINGLE", "MARRIED", "DIVORCED", "WIDOWED"]),
       },

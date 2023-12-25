@@ -6,6 +6,7 @@ const authEventEmitter = require("../events/authEventEmitters");
 const sendMail = require("../utils/sendMail");
 
 authEventEmitter.on("mfa-link", async ({ user }) => {
+  // this event handler handles login link
   let loginToken = crypto.randomBytes(32).toString("hex");
   const loginTokenHash = await bcrypt.hash(
     loginToken,
@@ -17,7 +18,7 @@ authEventEmitter.on("mfa-link", async ({ user }) => {
   if (userToken) {
     await userToken.destroy();
   }
-  user.createUserToken({
+  let userLoginToken = await user.createUserToken({
     token: loginTokenHash,
     tokenType: "LOGIN_LINK",
   });
@@ -29,6 +30,9 @@ authEventEmitter.on("mfa-link", async ({ user }) => {
   <a href='${link}'>Login</a>
   `;
   sendMail(user.email, "zPlatform! Login Link", message);
+  setTimeout(function () {
+    userLoginToken.destroy()
+  }, 600000);
 });
 
 authEventEmitter.on("mfa-otp", async ({ user }) => {

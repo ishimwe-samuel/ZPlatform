@@ -23,7 +23,7 @@ if (cluster.isMaster) {
 } else {
   // Workers share the TCP connection in this server
   Sentry.init({
-    dsn: "https://4fe486c2ef01fd93c10d0a38f22cf426@o4506450129125376.ingest.sentry.io/4506450130632704",
+    dsn: process.env.SENTRY_DSN,
     integrations: [
       // enable HTTP calls tracing
       new Sentry.Integrations.Http({ tracing: true }),
