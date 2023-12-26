@@ -7,7 +7,7 @@ const { ProfilingIntegration } = require("@sentry/profiling-node");
 // this will decide if we cluster our app
 ALLOW_CLUSTERING = false;
 // server.js
-if (ALLOW_CLUSTER) {
+if (ALLOW_CLUSTERING) {
   const numCPUs = os.cpus().length;
 
   if (cluster.isMaster) {
