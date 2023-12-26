@@ -6,12 +6,14 @@ const {
   updateProfile,
   allUsers,
   userDetail,
+  updateMFA,
 } = require("../../../controllers/userController");
 const handleMulterException = require("../../../controllers/multerErrorHandlerController");
 const router = express.Router();
 router.get("/", allUsers);
 router.get("/:id", userDetail);
 router.patch("/:id/", updateUserStatus);
+router.patch("/me/mfa/", updateMFA);
 router.post(
   "/update-profile/",
 

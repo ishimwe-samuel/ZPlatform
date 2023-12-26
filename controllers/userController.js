@@ -60,11 +60,11 @@ const updateUserStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.query;
-    const userDeletion = await User.update(
-      { active: status },
+    const userUpdate = await User.update(
+      { status: status },
       { where: { id: id } }
     );
-    res.status(200).send();
+    return res.status(200).json(userUpdate);
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
     Sentry.captureException(error);
@@ -145,10 +145,26 @@ const updateProfile = async (req, res) => {
     Sentry.captureException(error);
   }
 };
+const updateMFA = async (req, res) => {
+  try {
+    let user = await User.findByPk(req.user.id, { include: "mfa" });
+    const { authType } = req.body;
+    if (["LINK", "OTP", "PASSWORD"].indexOf(authType) !== -1) {
+      await user.mfa.update({ authType });
+      return res.status(200).json(user.mfa);
+    } else {
+      return res.status(400).json({ error: "Wrong auth type" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+    Sentry.captureException(error);
+  }
+};
 
 module.exports = {
   updateUserStatus,
   updateProfile,
   allUsers,
   userDetail,
+  updateMFA,
 };
