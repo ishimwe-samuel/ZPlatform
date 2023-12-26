@@ -8,7 +8,6 @@ const validatePassword = (password) => {
   }
   if (password.length < 8) {
     // Password is too short
-    console.log("hello");
     throw new Error("Your password is too short");
   }
   if (!hasUpperCase) {

@@ -326,6 +326,7 @@ const verifyLoginLink = async (req, res) => {
 
     let user = await User.findByPk(userId, {
       attributes: { exclude: ["password"] },
+      include:"profile"
     });
 
     if (user) {

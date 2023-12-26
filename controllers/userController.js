@@ -7,6 +7,11 @@ const validateUserProfile = require("../validators/validateUserProfile");
 const allUsers = async (req, res) => {
   try {
     const { status, query } = req.query;
+    const page = parseInt(req.query.page) || 1; // Get the page number from query parameters
+    const pageSize = 10; // Get the page size from query parameters
+
+    const offset = (page - 1) * pageSize;
+
     let whereClause = {};
 
     // Check if the 'name' parameter is present in the query
@@ -23,12 +28,23 @@ const allUsers = async (req, res) => {
     if (status) {
       whereClause.status = { [Sequelize.Op.eq]: status };
     }
-    const users = await User.findAll({
-      attributes: { exclude: ["password", "userId"] },
+    const users = await User.findAndCountAll({
       where: { admin: false, ...whereClause },
+      attributes: { exclude: ["password", "userId"] },
       include: "profile",
+      offset: offset,
+      limit: pageSize,
+      order: [["createdAt", "DESC"]], // Adjust the order as per your requirement
     });
-    res.status(200).json(users);
+    const { count, rows } = users;
+    const totalPages = Math.ceil(count / pageSize);
+
+    res.status(200).json({
+      count,
+      totalPages: totalPages,
+      currentPage: page,
+      results: rows,
+    });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
     Sentry.captureException(error);
@@ -83,8 +99,6 @@ const updateProfile = async (req, res) => {
       nationalId,
     } = req.body;
     try {
-      const profilePicture = req.files["profilePicture"][0].path;
-      const nationalIdDocument = req.files["nationalIdDocument"][0].path;
       let userProfile = await UserProfile.findOne({
         where: { userId: user.id },
       });
@@ -110,15 +124,16 @@ const updateProfile = async (req, res) => {
         if (nationalId) {
           userProfile.nationalId = nationalId;
         }
-        if (profilePicture) {
+        if (req.files && req.files["profilePicture"]) {
           // remove user associated file and replace with new one
           deleteFile(userProfile.profilePicture);
-          userProfile.profilePicture = profilePicture;
+          userProfile.profilePicture = req.files["profilePicture"][0].path;
         }
-        if (nationalIdDocument) {
+        if (req.files && req.files["nationalIdDocument"]) {
           // remove user associated file and replace with new one
           deleteFile(userProfile.nationalIdDocument);
-          userProfile.nationalIdDocument = nationalIdDocument;
+          userProfile.nationalIdDocument =
+            req.files["nationalIdDocument"][0].path;
         }
         userProfile.save();
       } else {
@@ -136,7 +151,7 @@ const updateProfile = async (req, res) => {
         });
         user.setProfile(userProfileInstance);
       }
-      res.status(204).send();
+      res.status(200).json(userProfile);
     } catch (error) {
       return res.status(400).json({ error: error.message });
     }
