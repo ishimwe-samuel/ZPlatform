@@ -33,7 +33,7 @@ userEmitter.on("resend-otp", async ({ user }) => {
 userEmitter.on("user-activated", async ({ user }) => {
   let message = `
   <h3>Welcome to the <b>zPlatform!</b></h3>
-  <h1>Your account has be activated enjoy the zPlatform</h1>
+  <h1>Your account has been activated enjoy the zPlatform</h1>
 `;
   sendMail(user.email, "Welcome to zPlatform", message);
   // create a mfa instance with password as default
@@ -49,4 +49,14 @@ userEmitter.on("reset-password", ({ user, link }) => {
   `;
   sendMail(user.email, "Reset Password Request", message);
 });
+userEmitter.on('user-verified',async({userId})=>{
+  let user=await User.findByPk(userId,{include:'profile'})
+  if (user) {
+    let message = `
+    <p>Hi ${user.profile.lastName}</p>
+    <p>Your account has been successfuly verified</p>  
+    `;
+    sendMail(user.email, "Account Verification", message);
+  }
+})
 module.exports = {};

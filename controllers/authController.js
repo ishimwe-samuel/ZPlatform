@@ -11,13 +11,13 @@ const userRegistration = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email) {
-      return res.status(400).json({ email: "email is required" });
+      return res.status(400).json({ error: "email is required" });
     } else if (email) {
       let existingUser = await User.findOne({ where: { email: email } });
       if (existingUser) {
         return res
           .status(400)
-          .json({ email: "A user is already registered with this email" });
+          .json({ error: "A user is already registered with this email" });
       }
     }
     try {
@@ -43,7 +43,7 @@ const userRegistration = async (req, res) => {
           .json({ error: "Something went wrong please try again" });
       }
     } catch (error) {
-      return res.status(400).json({ password: error.message });
+      return res.status(400).json({ error: error.message });
     }
   } catch (error) {
     if (error.errors) {
@@ -70,14 +70,23 @@ const otpVerification = async (req, res) => {
     if (errors.length) {
       return res.status(400).json({ errors });
     } else {
-      const user = await User.findOne({ where: { id: userId } });
+      const user = await User.findOne({ where: { id: userId },include:"profile"});
       if (user) {
         let otp = await OTP.findOne({ where: { userId: userId } });
         if (otp && otp.active == true && otp.isValid() == true) {
-          user.update({ active: true });
-          userEmitter.emit("user-activated", { user: user });
+          if (user.valid) {
+            user.update({ active: true });
+            userEmitter.emit("user-activated", { user: user });
+          }
           await otp.destroy();
-          return res.status(204).send();
+          const token = jwt.sign(
+            {
+              userId: user.id,
+            },
+            process.env.ACCESS_TOKEN_KEY,
+            { expiresIn: "1h" }
+          );
+          return res.status(200).json({ token: token, user: user });
         } else {
           return res
             .status(403)
@@ -111,6 +120,11 @@ const resetPassword = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ error: "User with this email does not exists" });
+    }
     let userToken = await Token.findOne({
       where: { userId: user.id, tokenType: "RESET_PASSWORD" },
     });
@@ -127,7 +141,7 @@ const resetPassword = async (req, res) => {
         userId: user.id,
         token: resetTokenHash,
       });
-      const link = `http://localhost:4000/passwordReset?token=${resetToken}&id=${user.id}`;
+      const link = `http://localhost:3000/reset-password/${resetToken}/${user.id}`;
       userEmitter.emit("reset-password", { user: user, link: link });
       res.status(200).send();
     } else {
@@ -145,19 +159,19 @@ const setPassword = async (req, res) => {
     const { userId, token, password } = req.body;
     let errorList = [];
     if (!userId) {
-      errorList.push({ userId: "User id is required" });
+      errorList.push({ error: "User id is required" });
     }
     if (!token) {
-      errorList.push({ token: "Token id is required" });
+      errorList.push({ error: "Token id is required" });
     }
     if (!password) {
-      errorList.push({ password: "Password is required" });
+      errorList.push({ error: "Password is required" });
     }
     if (errorList.length) {
       return res.status(400).json(errorList);
     }
 
-    const user = await User.findOne({ where: { id: userId } });
+    const user = await User.findByPk(userId);
     const tokenInstace = await Token.findOne({ where: { userId } });
     if (!user) {
       return res.status(404).json({ error: "User not found!" });
@@ -187,7 +201,7 @@ const setPassword = async (req, res) => {
       await tokenInstace.destroy();
       res.status(204).send();
     } catch (error) {
-      return res.status(400).json({ password: error.message });
+      return res.status(400).json({ error: error.message });
     }
   } catch (error) {
     res.status(500).json({ error: "Something went wrong!" });
@@ -252,7 +266,7 @@ const userPreAuth = async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) {
-      return res.status(400).json({ email: "Email is required" });
+      return res.status(400).json({ error: "Email is required" });
     }
     let user = await User.findOne({ where: { email }, include: "mfa" });
     if (user) {
@@ -271,7 +285,7 @@ const userPreAuth = async (req, res) => {
     } else {
       return res
         .status(404)
-        .json({ email: "User with this email does not exists" });
+        .json({ error: "User with this email does not exists" });
     }
   } catch (error) {
     res.status(500).json({ error: "Something went wrong" });
@@ -326,7 +340,7 @@ const verifyLoginLink = async (req, res) => {
 
     let user = await User.findByPk(userId, {
       attributes: { exclude: ["password"] },
-      include:"profile"
+      include: "profile",
     });
 
     if (user) {

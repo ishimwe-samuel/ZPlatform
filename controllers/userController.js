@@ -3,6 +3,7 @@ const { Sequelize } = require("sequelize");
 const { User, UserProfile } = require("../models");
 const deleteFile = require("../utils/deleteFile");
 const validateUserProfile = require("../validators/validateUserProfile");
+const userEmitter = require("../events/eventEmitters");
 
 const allUsers = async (req, res) => {
   try {
@@ -80,7 +81,9 @@ const updateUserStatus = async (req, res) => {
       { status: status },
       { where: { id: id } }
     );
-    return res.status(200).json(userUpdate);
+
+    res.status(200).json(userUpdate);
+    userEmitter.emit("user-verified", { userId: id });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
     Sentry.captureException(error);
@@ -138,6 +141,8 @@ const updateProfile = async (req, res) => {
         userProfile.save();
       } else {
         validateUserProfile(req.body);
+        let profilePicture = req.files["profilePicture"][0].path;
+        let nationalIdDocument = req.files["nationalIdDocument"][0].path;
         let userProfileInstance = await UserProfile.create({
           firstName,
           lastName,
@@ -156,6 +161,7 @@ const updateProfile = async (req, res) => {
       return res.status(400).json({ error: error.message });
     }
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: error.message });
     Sentry.captureException(error);
   }
