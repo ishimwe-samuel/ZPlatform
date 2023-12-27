@@ -16,8 +16,10 @@ services:
       POSTGRES_DB: zplatform
       POSTGRES_USER: test
       POSTGRES_PASSWORD: test@123
+      POSTGRES_HOST: db
     volumes:
       - /usr/src/app/node_modules
+      - ./uploads:/usr/src/app/uploads
     depends_on:
       - db
 

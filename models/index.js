@@ -18,7 +18,7 @@ if (config.use_env_variable) {
     database: process.env.POSTGRES_DB,
     username: process.env.POSTGRES_USER,
     password: process.env.POSTGRES_PASSWORD,
-    host: "db",
+    host: process.env.POSTGRES_HOST,
     dialect: "postgres",
   });
 }
