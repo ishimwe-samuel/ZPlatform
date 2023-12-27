@@ -19,7 +19,7 @@ if (config.use_env_variable) {
     username: process.env.POSTGRES_USER,
     password: process.env.POSTGRES_PASSWORD,
     host: process.env.POSTGRES_HOST,
-    dialect: "postgres",
+    dialect: "postgres"
   });
 }
 
