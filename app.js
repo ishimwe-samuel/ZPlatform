@@ -6,11 +6,9 @@ require("./handlers/eventHandlers.js");
 // auth events
 require("./events/authEventEmitters.js");
 require("./handlers/authEventHandler.js");
-
 require("dotenv").config({ path: ".env" });
 
 const app = express();
-require("dotenv").config();
 const routes = require("./routes");
 // routes
 app.use(express.urlencoded({ extended: true }));
