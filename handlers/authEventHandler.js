@@ -23,7 +23,7 @@ authEventEmitter.on("mfa-link", async ({ user }) => {
     tokenType: "LOGIN_LINK",
   });
 
-  const link = `http://localhost:3000/${loginToken}/${user.id}`;
+  const link = `https://zplatform.samueldev.com/${loginToken}/${user.id}`;
   let message = `
   <p>Hi</p>
   <p>Please use this link to login in int the zPLatform!</p>  

@@ -137,7 +137,7 @@ const resetPassword = async (req, res) => {
         userId: user.id,
         token: resetTokenHash,
       });
-      const link = `http://localhost:3000/reset-password/${resetToken}/${user.id}`;
+      const link = `https://zplatform.samueldev.com/reset-password/${resetToken}/${user.id}`;
       userEmitter.emit("reset-password", { user: user, link: link });
       res.status(200).send();
     } else {
