@@ -11,14 +11,14 @@
     "username": "test",
     "password": "test@123",
     "database": "zplatformtest",
-    "host": "127.0.0.1",
+    "host": "db",
     "dialect": "postgresql"
   },
   "production": {
     "username": "test",
     "password": "test@123",
     "database": "zplatform",
-    "host": "127.0.0.1",
+    "host": "db",
     "dialect": "postgresql"
   }
 }

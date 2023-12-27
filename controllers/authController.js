@@ -46,14 +46,7 @@ const userRegistration = async (req, res) => {
       return res.status(400).json({ error: error.message });
     }
   } catch (error) {
-    if (error.errors) {
-      if (error.errors[0].validatorKey === "not_unique") {
-        return res
-          .status(400)
-          .json({ error: "User with this email exist or phone number" });
-      }
-      return res.status(400).json({ error: error.errors[0].message });
-    }
+    console.log(error);
     return res.status(400).json({ error: "Something went wrong" });
   }
 };
@@ -70,11 +63,14 @@ const otpVerification = async (req, res) => {
     if (errors.length) {
       return res.status(400).json({ errors });
     } else {
-      const user = await User.findOne({ where: { id: userId },include:"profile"});
+      const user = await User.findOne({
+        where: { id: userId },
+        include: "profile",
+      });
       if (user) {
         let otp = await OTP.findOne({ where: { userId: userId } });
         if (otp && otp.active == true && otp.isValid() == true) {
-          if (user.valid) {
+          if (!user.active) {
             user.update({ active: true });
             userEmitter.emit("user-activated", { user: user });
           }

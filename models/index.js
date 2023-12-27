@@ -13,12 +13,14 @@ let sequelize;
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {
-  sequelize = new Sequelize(
-    config.database,
-    config.username,
-    config.password,
-    config
-  );
+  // modified this file to fetch from environment variables
+  sequelize = new Sequelize({
+    database: process.env.POSTGRES_DB,
+    username: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD,
+    host: "db",
+    dialect: "postgres",
+  });
 }
 
 fs.readdirSync(__dirname)
