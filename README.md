@@ -14,7 +14,7 @@ Company Z provides essential online services for tens of thousands of users thro
 Clone the project
 
 ```bash
-  git clone https://github.com/ishimwe-samuel/ZPlatform
+  git clone https://github.com/ishimwe-samuel/ZPlatform.git
 ```
 
 Go to the project directory
