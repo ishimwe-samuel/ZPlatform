@@ -5,8 +5,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
-    "test": "mocha",
-    "seed":"npx sequelize-cli db:seed:all "
+    "test": "mocha"
   },
   "author": "ISHIMWE Samuel",
   "license": "ISC",
