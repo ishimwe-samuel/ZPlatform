@@ -11,8 +11,9 @@ services:
       BCRYPT_SALT: 10
       ACCESS_TOKEN_KEY: 0d5d0cfb1901fb8f7c90fa1fd639c47eff0984c8e32fd2263bc19c9cfa683925dcfb6aa04c5bbe8ec033eb7801dc7eb7ce2862beeea0d54b67c9247a7724e5a5
       SENTRY_DSN: https://4fe486c2ef01fd93c10d0a38f22cf426@o4506450129125376.ingest.sentry.io/4506450130632704
-      EMAIL_USER: solvitcadet@gmail.com
-      EMAIL_PASSWORD: dxmjoqfoeewnfigh
+      EMAIL_USER: zplatform15@gmail.com
+      EMAIL_PASSWORD: icjfglxcqfkisacy
+
       POSTGRES_DB: zplatform
       POSTGRES_USER: test
       POSTGRES_PASSWORD: test@123
