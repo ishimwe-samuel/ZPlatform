@@ -68,7 +68,7 @@ const otpVerification = async (req, res) => {
         include: "profile",
       });
       if (user) {
-        let otp = await OTP.findOne({ where: { userId: userId } });
+        let otp = await OTP.findOne({ where: { userId: userId, otp: otp } });
         if (otp && otp.active == true && otp.isValid() == true) {
           if (!user.active) {
             user.update({ active: true });
